@@ -1,4 +1,4 @@
-const bcryptjs=require('bcryptjs')
+const bcryptjs = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 
 const router = require('express').Router();
@@ -11,7 +11,7 @@ router.post('/register', (req, res)=>{
     const credentials = req.body;
 
     if(isValid(credentials)){
-        const rounds = process.env.BCRYPT_ROUNDS || 12;
+        const rounds = process.env.BCRYPT_ROUNDS || 8;
         const hash = bcryptjs.hashSync(credentials.password, rounds)
 
         credentials.password = hash;
@@ -21,11 +21,11 @@ router.post('/register', (req, res)=>{
             res.status(201).json({data: user})
         })
         .catch(err =>{
-            res.status(500).json({message: error.message})
+            res.status(500).json({message: err.message})
         })
     }else{
         res.status(400).json({
-            message: 'please provide username and password.'
+            message: 'please provide username, password, and department.'
         })
     }
 })
@@ -35,14 +35,23 @@ router.post('/login', (req, res) =>{
     const {username, password} = req.body;
 
     if(isValid(req.body)){
-        Users.findBy({'users.username': username})
+        Users.findBy({username})
         .then(([user])=>{
-            if(user && bcryptjs.compareSync(password, user.password)){
+            console.log('COMING FROM IF FROM FINDBY', user)
+            if (user && bcryptjs.compareSync(password, user.password)){
                 const token = createToken(user);
                 res.status(200).json({message: 'welcome to the forbidden zone yee scoundrel!', token})
             }else{
                 res.status(401).json({message: 'Invalid credentials'})
             }
+        })
+        .catch(error =>{
+            res.status(500).json({message: error.message})
+            console.log('this is the error you want', error)
+        })
+    }else{
+        res.status(400).json({
+            message: "please provide username and password!"
         })
     }
 })
@@ -53,7 +62,7 @@ function createToken(user){
         username: user.username,
         role: user.role,
     }
-    const secret = process.env.JWT || '12345ab67cndaewqeodkcnbwodukc.a;sldjifqpriotuwoeirput207498'
+    const secret = process.env.JWT_SECRET || 'fakepasswordisfakebecauseitisfake'
 
     const options = {
         expiresIn: '4h'

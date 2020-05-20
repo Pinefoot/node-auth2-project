@@ -10,20 +10,22 @@ module.exports = {
 function find(){
     return db('users')
     .join('roles', 'users.role', 'roles.id')
-    .select('users.id', 'users.username', 'role.name')
+    .select('users.id', 'users.username', 'roles.name')
     .orderBy('users.id')
+    // .where()
 }
 
 function findBy(filter){
-    console.log(filter)
+    console.log('FILLLLLLLLLLLLLLLLLLTER',filter)
     return db('users')
-    .join('roles', 'users.role', 'roles.id')
-    .where(filter)
-    .select('users.id', "users.username", "roles.name", 'users.password')
-    .orderBy('users.id')
+    //.join('roles', 'users.role', 'roles.id')
+    
+    //.select('users.id', "users.username", "roles.name", 'users.password')
+    .where('users.username', filter.username)
+    //.orderBy('users.id')
 }
 
-async function add(users){
+async function add(user){
     try{
         const [id] = await db('users').insert(user, 'id')
         return findById(id)
